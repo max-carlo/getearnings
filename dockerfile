@@ -27,6 +27,6 @@ COPY . .
 
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-EXPOSE 8501
+EXPOSE 10000
 
 CMD ["./start.sh"]
