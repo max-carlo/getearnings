@@ -1,4 +1,3 @@
 #!/bin/bash
 
-echo "Starte Streamlit auf Port ${PORT} ..."
-streamlit run momentum.py --server.port=${PORT} --server.address=0.0.0.0
+streamlit run momentum.py --server.port=${PORT:-8501} --server.address=0.0.0.0
