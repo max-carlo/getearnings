@@ -1,0 +1,9 @@
+wget
+gnupg
+curl
+unzip
+libnss3
+libxss1
+libasound2
+fonts-liberation
+libgbm-dev
