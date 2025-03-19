@@ -25,9 +25,10 @@ RUN wget -qO- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor 
 
 # Lade den passenden ChromeDriver herunter
 RUN wget -O /tmp/chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/122.0.6261.111/linux64/chromedriver-linux64.zip" && \
-    unzip -l /tmp/chromedriver.zip
+    unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
+    mv /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
     chmod +x /usr/local/bin/chromedriver && \
-    rm /tmp/chromedriver.zip
+    rm -rf /tmp/chromedriver.zip /usr/local/bin/chromedriver-linux64
 
 # Setze Umgebungsvariablen für Chrome und ChromeDriver
 ENV CHROME_BIN=/usr/bin/google-chrome
