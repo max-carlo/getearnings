@@ -25,7 +25,7 @@ RUN wget -qO- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor 
 
 # Lade den passenden ChromeDriver herunter
 RUN wget -O /tmp/chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/122.0.6261.111/linux64/chromedriver-linux64.zip" && \
-    unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
+    unzip -l /tmp/chromedriver.zip
     chmod +x /usr/local/bin/chromedriver && \
     rm /tmp/chromedriver.zip
 
