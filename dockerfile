@@ -1,7 +1,7 @@
-# Start with a lightweight Python image
+# Nutze ein schlankes Python-Image
 FROM python:3.11-slim
 
-# Install system dependencies
+# Installiere benötigte Systempakete
 RUN apt-get update && apt-get install -y \
     wget \
     unzip \
@@ -16,31 +16,34 @@ RUN apt-get update && apt-get install -y \
     libgbm-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-chrome-keyring.gpg && \
+# Installiere Google Chrome
+RUN wget -qO- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-chrome-keyring.gpg && \
     echo 'deb [signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main' > /etc/apt/sources.list.d/google.list && \
     apt-get update && apt-get install -y google-chrome-stable
 
-# Manually set a specific ChromeDriver version (matching Chrome 123)
-RUN wget -O /tmp/chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/123.0.6312.122/linux64/chromedriver-linux64.zip" && \
+# Dynamisch die neueste kompatible ChromeDriver-Version abrufen
+RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}') && \
+    CHROME_MAJOR_VERSION=$(echo $CHROME_VERSION | cut -d '.' -f1) && \
+    CHROMEDRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_$CHROME_MAJOR_VERSION") && \
+    wget -O /tmp/chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVER_VERSION/linux64/chromedriver-linux64.zip" && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
     chmod +x /usr/local/bin/chromedriver && \
     rm /tmp/chromedriver.zip
 
-# Set environment variables for Chrome in Render
+# Setze Umgebungsvariablen für Chrome und ChromeDriver
 ENV CHROME_BIN=/usr/bin/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
 ENV PATH="/usr/local/bin:$PATH"
 
-# Create a working directory
+# Setze das Arbeitsverzeichnis
 WORKDIR /app
 COPY . /app
 
-# Install Python dependencies
+# Installiere Python-Abhängigkeiten
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the correct port (10000)
+# Exponiere den richtigen Port
 EXPOSE 10000
 
-# Run Streamlit app
+# Starte die Streamlit-App
 CMD ["streamlit", "run", "momentum.py", "--server.port=10000", "--server.address=0.0.0.0"]
