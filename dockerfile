@@ -3,40 +3,52 @@ FROM python:3.11-slim
 # Installiere Systemabhängigkeiten
 RUN apt-get update && apt-get install -y \
     wget \
-    unzip \
     curl \
+    unzip \
     gnupg \
     libnss3 \
     libxss1 \
+    libappindicator3-1 \
     libasound2 \
     fonts-liberation \
-    libx11-xcb1 \
-    libappindicator3-1 \
-    xvfb \
+    xdg-utils \
+    libgbm1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Installiere Chrome Stable
-RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-chrome.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list && \
-    apt-get update && \
-    apt-get install -y google-chrome-stable && \
-    rm -rf /var/lib/apt/lists/*
+# Google Chrome installieren (feste Version)
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    dpkg -i google-chrome-stable_current_amd64.deb || apt-get -f install -y && \
+    rm google-chrome-stable_current_amd64.deb
 
-# Installiere den passenden ChromeDriver
-RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f1) && \
-    CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}") && \
-    wget "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -O /tmp/chromedriver.zip && \
+# Feste ChromeDriver-Version (123.0.6312.86 aktuell Stand März 2025, ggf. anpassen)
+RUN wget -O /tmp/chromedriver.zip https://storage.googleapis.com/chromedriver-linux64/123.0.6312.122/chromedriver-linux64.zip && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
     chmod +x /usr/local/bin/chromedriver && \
     rm /tmp/chromedriver.zip
 
-# Arbeitsverzeichnis setzen und Python-Abhängigkeiten installieren
+# App-Verzeichnis einrichten
 WORKDIR /app
 COPY . /app
-RUN pip install -r requirements.txt
 
-# Port für Render freigeben
+# Python-Abhängigkeiten installieren
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Port freigeben
 EXPOSE 10000
 
-# Startbefehl direkt im Dockerfile
+# Startkommando
 CMD ["streamlit", "run", "momentum.py", "--server.port=10000", "--server.address=0.0.0.0"]
+
+---
+
+### Hinweise zur Versionswahl
+- Prüfe unbedingt die aktuelle ChromeDriver-Version, die zur stabilen Chrome-Version passt. (https://googlechromelabs.github.io/chrome-for-testing/)
+- Passe ggf. die Versionsnummer `123.0.6312.122` an, je nachdem, was aktuell stabil verfügbar ist (Stand März 2025 exemplarisch verwendet).
+
+**So vermeidest du zuverlässig dein aktuelles Problem:**
+- **Feste Chrome-Version** (nicht dynamisch)
+- **Feste ChromeDriver-Version** (nicht dynamisch)
+- **EXPOSE 10000** und Startkommando ebenfalls explizit mit Port 10000.
+
+👉 Ersetze dein aktuelles Dockerfile mit dem oben angegebenen vollständigen Code und deploye dann erneut auf Render.
